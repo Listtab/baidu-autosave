@@ -28,6 +28,16 @@ printf '%s' "/示例文件夹" > /tmp/v.txt && gh secret set SAVE_DIR --repo o/r
 
 同理，PowerShell 会把 URL 里的 `%2F` 误判为环境变量语法而拦截，打开含百分号编码的 URL 时改用其他方式。
 
+**同一个坑的第二种形态**：`gh api` 的端点参数也中招。
+
+```bash
+gh api /user              # 报错：invalid API endpoint "C:/Program Files/.../user"
+gh api user               # 正确，去掉前导斜杠
+gh api /repos/o/r/...     # 同样会坏
+```
+
+规律：**任何以 `/` 开头的命令行参数**在 Git Bash 下都有风险。写脚本时优先考虑这条路会不会经过 shell。
+
 ---
 
 ## 二、CI 运行时版本不匹配
@@ -144,3 +154,28 @@ ModuleNotFoundError: No module named 'setuptools'
 - cron 使用 **UTC**，北京时间需减 8 小时
 - 整点（`:00`）最拥挤，建议用 `:17`、`:43` 等错峰分钟，否则可能延迟十几分钟
 - 频率不要低于每 6 小时一次，否则容易触发 `-65`
+
+---
+
+## 十一、同步上游会覆盖本地修改
+
+本仓库是 Fork，且 master 上有三类本地提交：CI 修复、定时调整、`skills/` 目录。
+
+```bash
+gh repo sync --force   # ❌ 把 master 强制指向上游，以上修改全部丢失
+gh repo sync           # ✅ 非强制，无法快速前进时会拒绝而不是覆盖
+```
+
+需要长期维护本地改动时，更稳的做法是同步前先建备份分支，或把改动挪到独立分支日常使用。
+
+---
+
+## 十二、GitHub 通知设置无法通过 API 查询或修改
+
+- `GET /user/notification_settings` 不存在，返回 404
+- 公开资料里的 `email` 字段可能为 `null`（用户隐藏了邮箱）
+- 读取私有邮箱列表需要 `user` scope，最小权限配置下通常不具备
+- 因此「还会不会发邮件」只能看网页：`Settings → Notifications → System → Actions`
+
+**实证判断法**：GitHub 只在工作流**失败**时通知触发者。可以查 `gh run list` 里是否有结论为
+`failure` 的运行记录；若有，询问用户当时是否收到过标题类似 `Run failed` 的邮件——没收到即说明通知已关闭。
