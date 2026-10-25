@@ -6,3 +6,4 @@ typing-extensions==4.15.0
 cryptography==46.0.7
 Cython==3.1.4
 passlib==1.7.4
+setuptools>=68
