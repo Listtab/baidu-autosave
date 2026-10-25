@@ -11,17 +11,17 @@
 **原因**：Git Bash（MSYS2）会把以 `/` 开头的命令行参数自动转换成 Windows 路径。执行
 
 ```bash
-gh secret set SAVE_DIR --body "/嫁.金.钗 (2026)"
+gh secret set SAVE_DIR --body "/示例文件夹"
 ```
 
-时，实际传给 `gh` 的值变成 `C:/Program Files/Git/嫁.金.钗 (2026)`。
+时，实际传给 `gh` 的值变成 `C:/Program Files/Git/示例文件夹`。
 
 **修复**（任选其一）：
 
 ```bash
-MSYS_NO_PATHCONV=1 gh secret set SAVE_DIR --body "/嫁.金.钗 (2026)"
+MSYS_NO_PATHCONV=1 gh secret set SAVE_DIR --body "/示例文件夹"
 # 或：值走 stdin，不经过命令行参数
-printf '%s' "/嫁.金.钗 (2026)" > /tmp/v.txt && gh secret set SAVE_DIR --repo o/r < /tmp/v.txt
+printf '%s' "/示例文件夹" > /tmp/v.txt && gh secret set SAVE_DIR --repo o/r < /tmp/v.txt
 ```
 
 本技能脚本用 Python 的 `subprocess` + `input=` 传值，不经 shell，因此天然免疫。**只有手工用 bash 操作时才会踩到。**
@@ -113,7 +113,7 @@ ModuleNotFoundError: No module named 'setuptools'
 
 `SAVE_DIR` 是**父目录**。分享为单文件夹时，落点 = `SAVE_DIR/<分享文件夹名>`。
 
-写成 `/嫁.金.钗 (2026)` 会产生 `/嫁.金.钗 (2026)/嫁.金.钗 (2026)` 嵌套重复，白占一份空间。
+写成 `/示例文件夹` 会产生 `/示例文件夹/示例文件夹` 嵌套重复，白占一份空间。
 之后即使改回 `/`，嵌套目录也不会自动消失，需用户在网盘里手动删除。
 
 **判断是否踩坑**：日志出现「尝试整目录直接转存」并成功，且此前目标目录已存在，即为嵌套。
